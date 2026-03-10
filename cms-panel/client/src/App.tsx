@@ -25,6 +25,7 @@ import Activate from "./pages/admin/Activate";
 import MyDevices from "./pages/admin/MyDevices";
 import PointsHistory from "./pages/admin/PointsHistory";
 import SubResellers from "./pages/admin/SubResellers";
+import StorePage from "./pages/StorePage";
 
 function ProtectedRoute({ component: Component, requireSuperAdmin = false }: { component: React.ComponentType; requireSuperAdmin?: boolean }) {
   const { isAuthenticated, isLoading, isSuperAdmin } = useAuth();
@@ -37,7 +38,7 @@ function ProtectedRoute({ component: Component, requireSuperAdmin = false }: { c
     );
   }
 
-  if (!isAuthenticated) return <Redirect to="/" />;
+  if (!isAuthenticated) return <Redirect to="/login" />;
   if (requireSuperAdmin && !isSuperAdmin) return <Redirect to="/admin/dashboard" />;
 
   return (
@@ -68,8 +69,9 @@ function AuthRoute({ component: Component }: { component: React.ComponentType })
 function Router() {
   return (
     <Switch>
-      {/* Auth */}
-      <Route path="/" component={() => <AuthRoute component={Login} />} />
+      {/* Public */}
+      <Route path="/" component={StorePage} />
+      <Route path="/login" component={() => <AuthRoute component={Login} />} />
       <Route path="/change-password" component={ChangePassword} />
 
       {/* Super Admin */}
