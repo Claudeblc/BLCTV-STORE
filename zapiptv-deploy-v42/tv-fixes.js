@@ -1887,7 +1887,71 @@
         console.log('[TV-FIXES v42] Blocking page image replacement active');
     })();
 
-    console.log('[TV-FIXES v42] Loaded: Blocking page images replaced, Live TV mosaic+list views with EPG descriptions, carousel overflow fix, ultra-fast nav, neon focus, enhanced favorites, Samsung remote, VOD play/pause OK, horizontal scroll fix');
+    // ============================================
+    // HIDE WATCH PARTY & TELECOMMANDE for ZAP IPTV
+    // v42b: Force hide these menu items on Tizen/ZAP
+    // ============================================
+    (function() {
+        // CSS: Hide Watch Party and Télécommande links in sidebar/nav
+        var hideCSS = document.createElement('style');
+        hideCSS.id = 'hide-wp-remote';
+        hideCSS.textContent = [
+            '/* Hide Watch Party link */',
+            'a[href="/watch-party"], a[href*="watch-party"] { display: none !important; }',
+            '/* Hide Télécommande/Remote link */',
+            'a[href="/remote"], a[href*="/remote"] { display: none !important; }',
+            '/* Also hide by text content via parent */',
+            'nav a[href="/watch-party"], nav a[href="/remote"] { display: none !important; }',
+            '/* Hide from mobile bottom nav too */',
+            '[data-loc*="Sidebar"] a[href="/watch-party"], [data-loc*="Sidebar"] a[href="/remote"] { display: none !important; }',
+            '[data-loc*="BottomNav"] a[href="/watch-party"], [data-loc*="BottomNav"] a[href="/remote"] { display: none !important; }',
+            '[data-loc*="MobileNav"] a[href="/watch-party"], [data-loc*="MobileNav"] a[href="/remote"] { display: none !important; }',
+        ].join('\n');
+        document.head.appendChild(hideCSS);
+
+        // JS: Also remove the elements from DOM for extra safety
+        function hideWatchPartyAndRemote() {
+            var links = document.querySelectorAll('a[href="/watch-party"], a[href="/remote"], a[href*="watch-party"], a[href*="/remote"]');
+            for (var i = 0; i < links.length; i++) {
+                var link = links[i];
+                // Skip if it's a disableRemotePlayback or similar attribute
+                if (link.href && (link.href.indexOf('/remote') !== -1 || link.href.indexOf('watch-party') !== -1)) {
+                    // Check it's actually a nav link (has text content)
+                    var text = link.textContent || '';
+                    if (text.indexOf('Watch Party') !== -1 || text.indexOf('Télécommande') !== -1 || text.indexOf('Remote') !== -1) {
+                        link.style.display = 'none';
+                        link.setAttribute('aria-hidden', 'true');
+                    }
+                    // Also hide parent li if in a list
+                    var parent = link.closest('li');
+                    if (parent && (text.indexOf('Watch Party') !== -1 || text.indexOf('Télécommande') !== -1)) {
+                        parent.style.display = 'none';
+                    }
+                }
+            }
+
+            // Also search by text content in nav items
+            var allNavItems = document.querySelectorAll('nav a, aside a, [role="navigation"] a');
+            for (var j = 0; j < allNavItems.length; j++) {
+                var navText = allNavItems[j].textContent || '';
+                if (navText.trim() === 'Watch Party' || navText.trim() === 'Télécommande') {
+                    allNavItems[j].style.display = 'none';
+                    var parentLi = allNavItems[j].closest('li');
+                    if (parentLi) parentLi.style.display = 'none';
+                }
+            }
+        }
+
+        // Run on load and watch for DOM changes
+        hideWatchPartyAndRemote();
+        setInterval(hideWatchPartyAndRemote, 2000);
+        var wpObserver = new MutationObserver(function() { hideWatchPartyAndRemote(); });
+        wpObserver.observe(document.documentElement, { childList: true, subtree: true });
+
+        console.log('[TV-FIXES v42b] Watch Party & Télécommande hidden');
+    })();
+
+    console.log('[TV-FIXES v42b] Loaded: Watch Party & Remote hidden, Blocking page images replaced, Live TV mosaic+list views with EPG descriptions, carousel overflow fix, ultra-fast nav, neon focus, enhanced favorites, Samsung remote, VOD play/pause OK, horizontal scroll fix');
 
     // ============================================
     // HLS RECOVERY v2: Fix buffering + BLACK SCREEN on Live TV
